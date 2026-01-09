@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Payment Successful - MediCare Hospital{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+            <!-- Success Animation -->
+            <div class="mb-4">
+                <div class="rounded-circle bg-success d-inline-flex align-items-center justify-content-center"
+                    style="width: 120px; height: 120px; animation: scaleIn 0.5s ease-out;">
+                    <i class="bi bi-check-lg text-white" style="font-size: 4rem;"></i>
+                </div>
+            </div>
+
+            <h2 class="fw-bold text-success mb-3">Payment Successful!</h2>
+            <p class="text-muted mb-4">Your appointment has been confirmed and payment processed.</p>
+
+            <!-- Appointment Details Card -->
+            <div class="card text-start mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-calendar-check me-2 text-primary"></i>Appointment Details
+                    </h5>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <small class="text-muted">Doctor</small>
+                            <p class="mb-0 fw-bold">{{ appointment.doctor }}</p>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <small class="text-muted">Department</small>
+                            <p class="mb-0">{{ appointment.doctor.department.name }}</p>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <small class="text-muted">Date</small>
+                            <p class="mb-0 fw-bold">{{ appointment.date|date:"F d, Y" }}</p>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <small class="text-muted">Time</small>
+                            <p class="mb-0 fw-bold">{{ appointment.time_display }}</p>
+                        </div>
+                        {% if appointment.is_video_consultation %}
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-camera-video me-2"></i>
+                                <strong>Video Consultation</strong> - You'll receive a link before your appointment.
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Receipt -->
+            <div class="card text-start mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-receipt me-2 text-primary"></i>Payment Receipt
+                    </h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Transaction ID</span>
+                        <code>{{ payment.transaction_id }}</code>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Amount Paid</span>
+                        <strong class="text-success">${{ payment.amount }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Payment Method</span>
+                        <span>
+                            {% if payment.payment_method == 'card' %}
+                            <i class="bi bi-credit-card me-1"></i>Card ending in {{ payment.card_last_four }}
+                            {% else %}
+                            <i class="bi bi-cash me-1"></i>Cash (Pay at Hospital)
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Status</span>
+                        <span class="badge bg-success">{{ payment.get_status_display }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="alert alert-light border text-start">
+                <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb me-2"></i>What's Next?</h6>
+                <ul class="mb-0 ps-3">
+                    <li>A confirmation email has been sent to your registered email.</li>
+                    <li>Please arrive 10 minutes before your scheduled time.</li>
+                    <li>Bring your ID and any relevant medical records.</li>
+                </ul>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex justify-content-center gap-3 mt-4">
+                <a href="{% url 'patient_dashboard' %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-house me-2"></i>Go to Dashboard
+                </a>
+                <a href="{% url 'appointment_detail' appointment.id %}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-eye me-2"></i>View Appointment
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes scaleIn {
+        from {
+            transform: scale(0);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Medical History - MediCare Hospital{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">My Medical History</h2>
+            <p class="text-muted mb-0">View all your prescriptions and medical records</p>
+        </div>
+        <a href="{% url 'patient_dashboard' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    {% if records %}
+    <div class="row g-4">
+        {% for record in records %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="bi bi-file-medical me-2"></i>
+                        {{ record.created_at|date:"F d, Y" }}
+                    </span>
+                    <span class="badge bg-primary">{{ record.appointment.doctor.department.name }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-muted">Doctor</h6>
+                            <div class="d-flex align-items-center">
+                                <img src="https://ui-avatars.com/api/?name={{ record.appointment.doctor.user.first_name }}+{{ record.appointment.doctor.user.last_name }}&background=667eea&color=fff&size=40"
+                                    alt="" class="rounded-circle me-2" style="width: 40px; height: 40px;">
+                                <div>
+                                    <strong>{{ record.appointment.doctor }}</strong>
+                                    <br><small class="text-muted">{{ record.appointment.doctor.specialization }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-muted">Diagnosis</h6>
+                            <p class="mb-0">{{ record.diagnosis }}</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-muted">Prescribed Medicines</h6>
+                            <ul class="mb-0 ps-3">
+                                {% for med in record.medicine_list %}
+                                <li>{{ med }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% if record.symptoms %}
+                    <div class="mt-3">
+                        <h6 class="text-muted">Symptoms</h6>
+                        <p class="mb-0">{{ record.symptoms }}</p>
+                    </div>
+                    {% endif %}
+                    {% if record.instructions %}
+                    <div class="mt-3">
+                        <h6 class="text-muted">Instructions</h6>
+                        <p class="mb-0">{{ record.instructions }}</p>
+                    </div>
+                    {% endif %}
+                    {% if record.follow_up_date %}
+                    <div class="mt-3">
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            Follow-up scheduled: {{ record.follow_up_date|date:"M d, Y" }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-file-earmark-medical display-1 text-muted"></i>
+        <h4 class="mt-3">No Medical Records Yet</h4>
+        <p class="text-muted">Your prescriptions and medical records will appear here after your doctor visits.</p>
+        <a href="{% url 'doctor_list' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-calendar-plus me-2"></i>Book an Appointment
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

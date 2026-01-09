@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% block title %}Complete Payment - MediCare Hospital{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Progress Steps -->
+            <div class="d-flex justify-content-center mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        <i class="bi bi-check"></i>
+                    </div>
+                    <div class="mx-2 text-muted">Appointment Details</div>
+                    <div class="border-top" style="width: 50px;"></div>
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        2
+                    </div>
+                    <div class="mx-2 fw-bold">Payment</div>
+                    <div class="border-top" style="width: 50px;"></div>
+                    <div class="rounded-circle bg-light text-muted d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        3
+                    </div>
+                    <div class="mx-2 text-muted">Confirmation</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Order Summary -->
+                <div class="col-md-5 order-md-2 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-receipt me-2"></i>Order Summary
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Doctor:</span>
+                                <strong>{{ appointment.doctor }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Department:</span>
+                                <span>{{ appointment.doctor.department.name }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Date:</span>
+                                <span>{{ appointment.date|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Time:</span>
+                                <span>{{ appointment.time_display }}</span>
+                            </div>
+                            {% if appointment.is_video_consultation %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Type:</span>
+                                <span class="badge bg-info"><i class="bi bi-camera-video me-1"></i>Video Call</span>
+                            </div>
+                            {% endif %}
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Consultation Fee:</span>
+                                <span>${{ appointment.doctor.consultation_fee }}</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                <span>Total:</span>
+                                <span class="text-primary">${{ appointment.doctor.consultation_fee }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Form -->
+                <div class="col-md-7 order-md-1">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-credit-card me-2"></i>Payment Details
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="post" id="paymentForm">
+                                {% csrf_token %}
+
+                                <!-- Payment Method -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Payment Method</label>
+                                    <div class="d-flex gap-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method"
+                                                id="methodCard" value="card" checked>
+                                            <label class="form-check-label" for="methodCard">
+                                                <i class="bi bi-credit-card me-1"></i> Credit/Debit Card
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {% if appointment.is_video_consultation %}
+                                            <input class="form-check-input" type="radio" name="payment_method"
+                                                id="methodCash" value="cash" disabled>
+                                            {% else %}
+                                            <input class="form-check-input" type="radio" name="payment_method"
+                                                id="methodCash" value="cash">
+                                            {% endif %}
+                                            <label class="form-check-label" for="methodCash">
+                                                <i class="bi bi-cash me-1"></i> Pay at Hospital
+                                                {% if appointment.is_video_consultation %}
+                                                <div class="text-danger small mt-1">
+                                                    <i class="bi bi-x-circle me-1"></i>Not available for video
+                                                    consultation
+                                                </div>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card Details -->
+                                <div id="cardDetails">
+                                    <div class="mb-3">
+                                        <label for="cardName" class="form-label">Cardholder Name</label>
+                                        <input type="text" class="form-control" id="cardName" name="card_name"
+                                            placeholder="John Doe">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="cardNumber" class="form-label">Card Number</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="cardNumber" name="card_number"
+                                                placeholder="4242 4242 4242 4242" maxlength="19"
+                                                pattern="[0-9\s]{13,19}">
+                                            <span class="input-group-text">
+                                                <i class="bi bi-credit-card-2-front"></i>
+                                            </span>
+                                        </div>
+                                        <small class="text-muted">Demo mode: Use any valid card format</small>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <label for="cardExpiry" class="form-label">Expiry Date</label>
+                                            <input type="text" class="form-control" id="cardExpiry" name="card_expiry"
+                                                placeholder="MM/YY" maxlength="5">
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label for="cardCvc" class="form-label">CVC</label>
+                                            <input type="text" class="form-control" id="cardCvc" name="card_cvc"
+                                                placeholder="123" maxlength="4">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Cash Info -->
+                                <div id="cashDetails" style="display: none;">
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <strong>Pay at Hospital</strong><br>
+                                        Please arrive 15 minutes early to complete payment at the reception desk before
+                                        your appointment.
+                                    </div>
+                                </div>
+
+                                <!-- Security Notice -->
+                                <div class="alert alert-light border mb-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-shield-lock text-success fs-4 me-3"></i>
+                                        <div>
+                                            <strong>Secure Payment</strong><br>
+                                            <small class="text-muted">Your payment information is encrypted and
+                                                secure.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg" id="payButton">
+                                        <i class="bi bi-lock me-2"></i>Pay ${{ appointment.doctor.consultation_fee }}
+                                    </button>
+                                    <a href="{% url 'patient_dashboard' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left me-2"></i>Cancel
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Toggle payment method sections
+    const methodCard = document.getElementById('methodCard');
+    const methodCash = document.getElementById('methodCash');
+    const cardDetails = document.getElementById('cardDetails');
+    const cashDetails = document.getElementById('cashDetails');
+    const payButton = document.getElementById('payButton');
+    const cardInputs = cardDetails.querySelectorAll('input');
+
+    function updatePaymentMethod() {
+        if (methodCard.checked) {
+            cardDetails.style.display = 'block';
+            cashDetails.style.display = 'none';
+            payButton.innerHTML = '<i class="bi bi-lock me-2"></i>Pay ${{ appointment.doctor.consultation_fee }}';
+            cardInputs.forEach(input => input.required = true);
+        } else {
+            cardDetails.style.display = 'none';
+            cashDetails.style.display = 'block';
+            payButton.innerHTML = '<i class="bi bi-check-circle me-2"></i>Confirm Appointment';
+            cardInputs.forEach(input => input.required = false);
+        }
+    }
+
+    methodCard.addEventListener('change', updatePaymentMethod);
+    methodCash.addEventListener('change', updatePaymentMethod);
+
+    // Format card number with spaces
+    document.getElementById('cardNumber').addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+        let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formatted;
+    });
+
+    // Format expiry date
+    document.getElementById('cardExpiry').addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        }
+        e.target.value = value;
+    });
+</script>
+{% endblock %}
+{% endblock %}

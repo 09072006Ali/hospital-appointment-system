@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}{% if department %}{{ department.name }} Doctors{% else %}Our Doctors{% endif %} - MediCare Hospital{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <h1 class="fw-bold">
+                {% if department %}
+                {{ department.name }} Doctors
+                {% else %}
+                Our Doctors
+                {% endif %}
+            </h1>
+            <p class="text-muted">
+                {% if department %}
+                {{ department.description|default:"Find the best specialists in this department" }}
+                {% else %}
+                Find and book appointments with our qualified healthcare professionals
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-lg-4">
+            <!-- Search Form -->
+            <form method="get" class="d-flex gap-2">
+                {{ form.search }}
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filter by Department -->
+    <div class="mb-4">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                {{ form.department }}
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-funnel me-1"></i>Filter
+                </button>
+            </div>
+            {% if department %}
+            <div class="col-md-2">
+                <a href="{% url 'doctor_list' %}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-x me-1"></i>Clear
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Doctors Grid -->
+    <div class="row g-4">
+        {% for doctor in doctors %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card doctor-card h-100">
+                <div class="card-body text-center p-4">
+                    <img src="{% if doctor.profile_pic and doctor.profile_pic.name != 'profile_pics/default_doctor.png' %}{{ doctor.profile_pic.url }}{% else %}https://ui-avatars.com/api/?name={{ doctor.user.first_name }}+{{ doctor.user.last_name }}&background=667eea&color=fff&size=100{% endif %}"
+                        alt="{{ doctor }}" class="doctor-img mb-3">
+                    <h5 class="mb-1">{{ doctor }}</h5>
+                    <p class="text-primary mb-2">{{ doctor.specialization }}</p>
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-building me-1"></i>{{ doctor.department.name|default:'General' }}
+                    </p>
+                    <div class="mb-3">
+                        <span class="badge bg-light text-dark me-1">
+                            <i class="bi bi-star-fill text-warning me-1"></i>{{ doctor.experience_years }} Years
+                        </span>
+                        <span class="badge bg-light text-dark">
+                            <i class="bi bi-cash me-1"></i>${{ doctor.consultation_fee }}
+                        </span>
+                    </div>
+                    {% if doctor.bio %}
+                    <p class="text-muted small mb-3">{{ doctor.bio|truncatewords:15 }}</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center pb-4">
+                    {% if user.is_authenticated and user.is_patient %}
+                    <a href="{% url 'book_appointment' doctor.id %}" class="btn btn-primary">
+                        <i class="bi bi-calendar-plus me-2"></i>Book Appointment
+                    </a>
+                    {% elif user.is_authenticated %}
+                    <span class="text-muted small">Login as patient to book</span>
+                    {% else %}
+                    <a href="{% url 'login' %}?next={% url 'book_appointment' doctor.id %}" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login to Book
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-person-x display-1 text-muted"></i>
+            <p class="text-muted mt-3">No doctors found matching your criteria.</p>
+            <a href="{% url 'doctor_list' %}" class="btn btn-outline-primary">View All Doctors</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

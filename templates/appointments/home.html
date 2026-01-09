@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block title %}Home - MediCare Hospital{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container position-relative">
+        <div class="row align-items-center">
+            <div class="col-lg-6 fade-in-up">
+                <h1 class="display-4 fw-bold mb-4">Your Health, Our Priority</h1>
+                <p class="lead mb-4">Book appointments with top specialists, access your medical records, and manage
+                    your healthcare journey all in one place.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg px-4">
+                        <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                    </a>
+                    {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-light btn-lg px-4">
+                        <i class="bi bi-person-plus me-2"></i>Get Started
+                    </a>
+                    <a href="{% url 'doctor_list' %}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-search me-2"></i>Find a Doctor
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block text-center">
+                <div style="font-size: 15rem; opacity: 0.3;">
+                    <i class="bi bi-heart-pulse"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5" style="margin-top: -50px;">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-icon primary mx-auto mb-3">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="stat-value">{{ total_doctors }}+</div>
+                    <div class="stat-label">Expert Doctors</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-icon success mx-auto mb-3">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="stat-value">{{ total_departments }}</div>
+                    <div class="stat-label">Departments</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-icon warning mx-auto mb-3">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <div class="stat-value">24/7</div>
+                    <div class="stat-label">Available</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card text-center">
+                    <div class="stat-icon info mx-auto mb-3">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <div class="stat-value">15+</div>
+                    <div class="stat-label">Years Experience</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Departments Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Our Departments</h2>
+            <p class="text-muted">Explore our specialized medical departments</p>
+        </div>
+        <div class="row g-4">
+            {% for dept in departments %}
+            <div class="col-md-4 col-lg-2">
+                <a href="{% url 'doctors_by_department' dept.id %}" class="text-decoration-none">
+                    <div class="dept-card h-100">
+                        <div class="dept-icon">
+                            <i class="bi bi-{{ dept.icon|default:'hospital' }}"></i>
+                        </div>
+                        <h6 class="text-dark mb-1">{{ dept.name }}</h6>
+                        <small class="text-muted">{{ dept.doc_count }} Doctors</small>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <p class="text-muted">No departments available yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'department_list' %}" class="btn btn-outline-primary">
+                View All Departments <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Doctors Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Meet Our Doctors</h2>
+            <p class="text-muted">Experienced healthcare professionals dedicated to your care</p>
+        </div>
+        <div class="row g-4">
+            {% for doctor in featured_doctors %}
+            <div class="col-md-6 col-lg-3">
+                <div class="doctor-card h-100 text-center p-4">
+                    <img src="{% if doctor.profile_pic %}{{ doctor.profile_pic.url }}{% else %}https://ui-avatars.com/api/?name={{ doctor.user.first_name }}+{{ doctor.user.last_name }}&background=667eea&color=fff&size=100{% endif %}"
+                        alt="{{ doctor }}" class="doctor-img mb-3">
+                    <h5 class="mb-1">{{ doctor }}</h5>
+                    <p class="text-primary mb-2">{{ doctor.specialization }}</p>
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-building me-1"></i>{{ doctor.department.name|default:'General' }}
+                    </p>
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-star-fill text-warning me-1"></i>
+                        {{ doctor.experience_years }} Years Experience
+                    </p>
+                    {% if user.is_authenticated and user.is_patient %}
+                    <a href="{% url 'book_appointment' doctor.id %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-calendar-plus me-1"></i>Book Now
+                    </a>
+                    {% else %}
+                    <a href="{% url 'doctor_list' %}" class="btn btn-outline-primary btn-sm">
+                        View Profile
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <p class="text-muted">No doctors available yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'doctor_list' %}" class="btn btn-outline-primary">
+                View All Doctors <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5" style="background: var(--primary-gradient);">
+    <div class="container text-center text-white">
+        <h2 class="fw-bold mb-3">Ready to Book Your Appointment?</h2>
+        <p class="lead mb-4">Join thousands of patients who trust MediCare Hospital for their healthcare needs.</p>
+        {% if not user.is_authenticated %}
+        <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5">
+            <i class="bi bi-person-plus me-2"></i>Create Free Account
+        </a>
+        {% else %}
+        <a href="{% url 'doctor_list' %}" class="btn btn-light btn-lg px-5">
+            <i class="bi bi-calendar-plus me-2"></i>Book Appointment
+        </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

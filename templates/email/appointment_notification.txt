@@ -1,0 +1,20 @@
+MediCare Hospital - {{ subject }}
+==================================
+
+Dear {{ patient_name }},
+
+{{ introductory_message }}
+
+Appointment Details:
+- Doctor: Dr. {{ doctor_name }}
+- Department: {{ department_name }}
+- Date: {{ appointment_date }}
+- Time: {{ appointment_time }}
+- Status: {{ appointment_status }}
+
+If you have any questions, please contact our reception.
+
+Thank you for choosing MediCare Hospital.
+
+---
+© {% now "Y" %} MediCare Hospital. All Rights Reserved.

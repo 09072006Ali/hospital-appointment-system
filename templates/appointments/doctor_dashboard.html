@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% block title %}Doctor Dashboard - MediCare Hospital{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Header -->
+        <div class="col-12 mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1">Doctor Dashboard</h2>
+                    <p class="text-muted mb-0">Welcome, {{ doctor }} | {{ doctor.department.name }}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-primary fs-6 py-2 px-3">
+                        <i class="bi bi-calendar-check me-1"></i>{{ doctor.specialization }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="col-md-3 mb-4">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon primary me-3">
+                        <i class="bi bi-calendar-day"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value">{{ today_appointments.count }}</div>
+                        <div class="stat-label">Today's Patients</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon success me-3">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value">{{ completed_today }}</div>
+                        <div class="stat-label">Completed Today</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon warning me-3">
+                        <i class="bi bi-clock"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value">{{ pending_appointments.count }}</div>
+                        <div class="stat-label">Pending Confirmation</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon info me-3">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value">{{ total_patients }}</div>
+                        <div class="stat-label">Total Patients</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Appointments -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-calendar-day me-2"></i>Today's Schedule</span>
+                    <span class="badge bg-light text-dark">{{ today_appointments.count }} patients</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if today_appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for apt in today_appointments %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ apt.time_display }}</strong>
+                                    </td>
+                                    <td>
+                                        <div>{{ apt.patient }}</div>
+                                        <small class="text-muted">{{ apt.description|truncatewords:5 }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-{{ apt.status }}">
+                                            {{ apt.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'appointment_detail' apt.id %}"
+                                                class="btn btn-outline-primary" title="View">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            {% if apt.status == 'pending' %}
+                                            <a href="{% url 'confirm_appointment' apt.id %}"
+                                                class="btn btn-outline-success" title="Confirm">
+                                                <i class="bi bi-check"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% if apt.status != 'completed' and apt.status != 'cancelled' %}
+                                            <a href="{% url 'add_prescription' apt.id %}" class="btn btn-outline-info"
+                                                title="Add Prescription">
+                                                <i class="bi bi-file-medical"></i>
+                                            </a>
+                                            <a href="{% url 'complete_appointment' apt.id %}"
+                                                class="btn btn-outline-success" title="Mark Complete">
+                                                <i class="bi bi-check-circle"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-calendar-x display-1 text-muted"></i>
+                        <p class="text-muted mt-3 mb-0">No appointments scheduled for today</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Confirmations -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="bi bi-exclamation-circle me-2"></i>Pending Confirmation
+                </div>
+                <div class="card-body p-0">
+                    {% if pending_appointments %}
+                    <ul class="list-group list-group-flush">
+                        {% for apt in pending_appointments %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ apt.patient }}</strong>
+                                    <br><small class="text-muted">{{ apt.date|date:"M d" }} at {{ apt.time_display
+                                        }}</small>
+                                </div>
+                                <a href="{% url 'confirm_appointment' apt.id %}" class="btn btn-success btn-sm">
+                                    <i class="bi bi-check"></i>
+                                </a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-check-circle display-4 text-success"></i>
+                        <p class="text-muted mt-2 mb-0">All caught up!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Appointments -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-calendar-week me-2"></i>Upcoming Appointments
+                </div>
+                <div class="card-body p-0">
+                    {% if upcoming_appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Reason</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Video Call</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for apt in upcoming_appointments %}
+                                <tr>
+                                    <td>{{ apt.date|date:"M d, Y" }}</td>
+                                    <td>{{ apt.time_display }}</td>
+                                    <td>{{ apt.patient }}</td>
+                                    <td>{{ apt.description|truncatewords:8|default:"-" }}</td>
+                                    <td>
+                                        {% if apt.is_video_consultation %}
+                                        <span class="badge bg-info text-dark">
+                                            <i class="bi bi-camera-video me-1"></i>Video Consultation
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-{{ apt.status }}">
+                                            {{ apt.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if apt.is_video_consultation %}
+                                        <a href="{% url 'video_consultation' apt.id %}" class="btn btn-primary btn-sm"
+                                            title="Start Video Consultation">
+                                            <i class="bi bi-camera-video me-1"></i>Start Call
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted mb-0">No upcoming appointments</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

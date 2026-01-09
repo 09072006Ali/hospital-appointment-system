@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block title %}Book Appointment with {{ doctor }} - MediCare Hospital{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Doctor Info -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center p-4">
+                    <img src="{% if doctor.profile_pic and doctor.profile_pic.name != 'profile_pics/default_doctor.png' %}{{ doctor.profile_pic.url }}{% else %}https://ui-avatars.com/api/?name={{ doctor.user.first_name }}+{{ doctor.user.last_name }}&background=667eea&color=fff&size=120{% endif %}"
+                        alt="{{ doctor }}" class="doctor-img mb-3" style="width: 120px; height: 120px;">
+                    <h4 class="mb-1">{{ doctor }}</h4>
+                    <p class="text-primary mb-2">{{ doctor.specialization }}</p>
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-building me-1"></i>{{ doctor.department.name|default:'General' }}
+                    </p>
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span class="badge bg-light text-dark">
+                            <i class="bi bi-star-fill text-warning me-1"></i>{{ doctor.experience_years }} Years Exp
+                        </span>
+                        <span class="badge bg-success">
+                            <i class="bi bi-cash me-1"></i>${{ doctor.consultation_fee }}
+                        </span>
+                    </div>
+                    {% if doctor.bio %}
+                    <p class="text-muted small">{{ doctor.bio }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Time Slots Info -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <i class="bi bi-clock me-2"></i>Available Time Slots
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">09:00 AM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">09:30 AM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">10:00 AM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">10:30 AM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">11:00 AM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">11:30 AM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">12:00 PM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">02:00 PM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">02:30 PM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">03:00 PM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">03:30 PM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">04:00 PM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">04:30 PM</small></div>
+                        <div class="col-6"><small class="badge bg-light text-dark w-100">05:00 PM</small></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Form -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-calendar-plus me-2"></i>Book Appointment
+                </div>
+                <div class="card-body p-4">
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                        {% for field in form %}
+                        {% for error in field.errors %}
+                        {{ field.label }}: {{ error }}
+                        {% endfor %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" id="bookingForm">
+                        {% csrf_token %}
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_date" class="form-label">
+                                    <i class="bi bi-calendar3 me-1"></i>Select Date *
+                                </label>
+                                {{ form.date }}
+                                <small class="text-muted">Choose a date for your appointment</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_time" class="form-label">
+                                    <i class="bi bi-clock me-1"></i>Select Time Slot *
+                                </label>
+                                {{ form.time }}
+                                <small class="text-muted">Select an available time slot</small>
+                            </div>
+                        </div>
+
+                        <!-- Video Consultation Option -->
+                        <div class="mb-4">
+                            <div class="card border-primary">
+                                <div class="card-body py-3">
+                                    <div class="form-check form-switch d-flex align-items-center">
+                                        {{ form.is_video_consultation }}
+                                        <label class="form-check-label ms-2" for="id_is_video_consultation">
+                                            <i class="bi bi-camera-video text-primary me-1"></i>
+                                            <strong>Video Consultation</strong>
+                                        </label>
+                                    </div>
+                                    <small class="text-muted ms-4 ps-3">
+                                        Choose this for a virtual appointment from home.
+                                        You'll receive a video call link before your appointment.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="id_description" class="form-label">
+                                <i class="bi bi-chat-text me-1"></i>Reason for Visit
+                            </label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Consultation Fee:</strong> ${{ doctor.consultation_fee }}
+                            <span class="text-muted">(Payment required after booking)</span>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Confirm Booking
+                            </button>
+                            <a href="{% url 'doctor_list' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left me-2"></i>Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Hide already booked slots based on selected date
+    const bookedSlots = {{ booked_slots| safe }};
+    const dateInput = document.getElementById('id_date');
+    const timeSelect = document.getElementById('id_time');
+
+    // Store original options to restore when date changes
+    const originalOptions = Array.from(timeSelect.options).map(opt => ({
+        value: opt.value,
+        text: opt.text
+    }));
+
+    dateInput.addEventListener('change', function () {
+        const selectedDate = this.value;
+        const bookedForDate = bookedSlots[selectedDate] || [];
+
+        // Get current date and time
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+
+        // Clear current options
+        timeSelect.innerHTML = '';
+
+        // Add back only available slots
+        originalOptions.forEach(opt => {
+            let isPast = false;
+
+            // Check if selected date is today and time is in the past
+            if (selectedDate === todayStr && opt.value) {
+                const [hour, minute] = opt.value.split(':').map(Number);
+                if (hour < currentHour || (hour === currentHour && minute <= currentMinute)) {
+                    isPast = true;
+                }
+            }
+
+            // Add option only if it's not booked AND not in the past
+            if ((!opt.value || !bookedForDate.includes(opt.value)) && !isPast) {
+                const option = document.createElement('option');
+                option.value = opt.value;
+                option.text = opt.text;
+                timeSelect.appendChild(option);
+            }
+        });
+
+        // Show message if no slots available
+        if (timeSelect.options.length === 1) { // Only placeholder remains
+            const noSlotOption = document.createElement('option');
+            noSlotOption.value = '';
+            noSlotOption.text = 'No available slots for this date';
+            noSlotOption.disabled = true;
+            timeSelect.appendChild(noSlotOption);
+        }
+    });
+
+    // Trigger change event on load to filter initial state
+    if (dateInput.value) {
+        dateInput.dispatchEvent(new Event('change'));
+    }
+</script>
+{% endblock extra_js %}
+{% endblock content %}

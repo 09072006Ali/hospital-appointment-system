@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Appointment Details - MediCare Hospital{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-calendar-check me-2"></i>Appointment Details</span>
+                    <span class="badge badge-{{ appointment.status }}">{{ appointment.get_status_display }}</span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <!-- Appointment Info -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-muted mb-3">Appointment Information</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="bi bi-calendar3 text-primary me-2"></i>
+                                    <strong>Date:</strong> {{ appointment.date|date:"F d, Y" }}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-clock text-primary me-2"></i>
+                                    <strong>Time:</strong> {{ appointment.time_display }}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-building text-primary me-2"></i>
+                                    <strong>Department:</strong> {{ appointment.doctor.department.name }}
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Doctor Info -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-muted mb-3">Doctor Information</h6>
+                            <div class="d-flex align-items-center">
+                                <img src="https://ui-avatars.com/api/?name={{ appointment.doctor.user.first_name }}+{{ appointment.doctor.user.last_name }}&background=667eea&color=fff&size=60"
+                                    alt="{{ appointment.doctor }}" class="rounded-circle me-3"
+                                    style="width: 60px; height: 60px;">
+                                <div>
+                                    <strong>{{ appointment.doctor }}</strong>
+                                    <br><small class="text-muted">{{ appointment.doctor.specialization }}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Patient Info -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-muted mb-3">Patient Information</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="bi bi-person text-primary me-2"></i>
+                                    <strong>Name:</strong> {{ appointment.patient }}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-envelope text-primary me-2"></i>
+                                    <strong>Email:</strong> {{ appointment.patient.user.email }}
+                                </li>
+                                {% if appointment.patient.blood_type %}
+                                <li class="mb-2">
+                                    <i class="bi bi-droplet text-primary me-2"></i>
+                                    <strong>Blood Type:</strong> {{ appointment.patient.blood_type }}
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                        <!-- Reason for Visit -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-muted mb-3">Reason for Visit</h6>
+                            <p>{{ appointment.description|default:"Not specified" }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Medical Records -->
+                    {% if medical_records %}
+                    <hr>
+                    <h5 class="mb-3"><i class="bi bi-file-medical me-2"></i>Medical Records</h5>
+                    {% for record in medical_records %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Diagnosis</h6>
+                                    <p>{{ record.diagnosis }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Prescribed Medicines</h6>
+                                    <ul class="mb-0">
+                                        {% for med in record.medicine_list %}
+                                        <li>{{ med }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            {% if record.instructions %}
+                            <div class="mt-3">
+                                <h6>Instructions</h6>
+                                <p class="mb-0">{{ record.instructions }}</p>
+                            </div>
+                            {% endif %}
+                            {% if record.follow_up_date %}
+                            <div class="mt-3">
+                                <span class="badge bg-info">
+                                    <i class="bi bi-calendar me-1"></i>Follow-up: {{ record.follow_up_date|date:"M d, Y"
+                                    }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2 mt-4">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                        {% if user.is_doctor and appointment.status != 'completed' and appointment.status != 'cancelled' %}
+                        <a href="{% url 'add_prescription' appointment.id %}" class="btn btn-primary">
+                            <i class="bi bi-file-medical me-2"></i>Add Prescription
+                        </a>
+                        <a href="{% url 'complete_appointment' appointment.id %}" class="btn btn-success">
+                            <i class="bi bi-check-circle me-2"></i>Mark Complete
+                        </a>
+                        {% endif %}
+                        {% if user.is_patient and appointment.status == 'pending' %}
+                        <a href="{% url 'cancel_appointment' appointment.id %}" class="btn btn-danger"
+                            onclick="return confirm('Are you sure you want to cancel?')">
+                            <i class="bi bi-x-circle me-2"></i>Cancel Appointment
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
